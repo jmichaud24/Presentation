@@ -1,0 +1,184 @@
+---
+title: "Views on Foreign Policy: U.S. Adults"
+subtitle: "From Wave 116 of the American Trends Panel"
+author: "John Michaud, MA candidate in International Affairs"
+institute: "American University, Washington D.C."
+date: "2024-03-25"
+output: 
+  beamer_presentation: 
+fontsize: 10pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  eval = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = 'center'
+)
+
+library(tidyverse)
+library(haven)
+library(ggplot2)
+library(patchwork)
+
+ATP_W116 <- read_sav("~/Desktop/Spring 2024/Data Analysis/09-presentations/ATP W116.sav")
+```
+
+## Data
+
+* American Trends Panel 
+  + online, nationally representative panel of American adults
+  + created by the Pew Research Center and managed by IPSOS
+  + asks questions on politics, public policy, and social issues
+
+
+
+* Wave 116  
+  + responses from 5,726 randomly-selected panelists
+  + collected between Oct. 10 and Oct. 16, 2022 
+
+
+
+* Analysis
+  + check for partisan differences on foreign policy 
+    + respondents grouped by variable DRLEAD 
+  + two questions on U.S. foreign policy 
+    + SUPERPWR
+    + ALLIES
+  
+
+
+## Support for U.S. military supremacy across party lines
+
+```{r, fig.dim = c(4,3)}
+tab2 =
+ATP_W116 |>
+  count(DRLEAD_W116, SUPERPWR_W116) |>
+  mutate(Superpower = factor(SUPERPWR_W116, 
+                             levels = c("1", "2", "99"), ordered = TRUE),
+         PartyPref = factor(DRLEAD_W116, 
+                                        levels = c("1","2","3","99"), ordered = TRUE)) |>
+  select(PartyPref, Superpower, n)
+
+P3 =
+tab2 |>
+  filter(PartyPref != "99",
+       Superpower != "99") |>
+  ggplot(aes(fill = Superpower, y = n, x = PartyPref)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_bw() +
+  theme(panel.background = element_rect(color = "black")) +
+  theme(panel.grid.major = element_blank()) +
+  theme(panel.grid.minor = element_blank())
+
+P_Superpower =
+P3 +
+  scale_fill_discrete(
+    name = "In the future, do you think...",
+    breaks = c("1", "2"),
+    labels = c("U.S. policies should try to keep it so\nAmerica is the only military superpower (1)", 
+               "It would be acceptable if another country\nbecame as militarily powerful as the U.S. (2)")) +
+  theme(legend.position = c(.74, .835)) +
+  theme(legend.spacing.y = unit(1, "mm")) +
+  guides(fill = guide_legend(byrow = TRUE)) +
+  scale_y_continuous(limits = c(0, 1500),
+                     name = NULL) +
+  scale_x_discrete(breaks = c("1", "2", "3"),
+                   labels = c("Favors Republicans", "Favors Democrats", "Unsure"),
+                   name = NULL) +
+  labs(title = "All Respondents") +
+  theme(
+    axis.text = element_text(color = "black", size = 7),
+    legend.text = element_text(color = "black", size = 5),
+    legend.title = element_text(color = "black", size = 5.5),
+    plot.title = element_text(hjust = .5),
+    axis.ticks.x = element_blank()
+  ) 
+
+
+P_Superpower
+```
+
+```{r, include = FALSE}
+tab = 
+ATP_W116 |>
+  count(DRLEAD_W116, ALLIES_W116) |>
+  mutate(PartyPref = factor(DRLEAD_W116, 
+                            levels = c("1","2","3","99"), ordered = TRUE),
+         Allies = factor(ALLIES_W116,
+                        levels = c("1", "2", "99"), ordered = TRUE)) |>
+  select(PartyPref, Allies, n) 
+
+tab1 = as.data.frame(tab)
+
+P1 = 
+tab1 |>
+  filter(PartyPref != "99",
+         Allies != "99") |> 
+  ggplot(aes(fill = Allies, x = Allies, y = n)) +
+  geom_bar(stat = "identity", width = 1) +
+  theme_bw() +
+  theme(panel.background = element_rect(color = "black")) +
+  theme(panel.grid.major = element_blank()) +
+  theme(panel.grid.minor = element_blank()) +
+  labs(title = "All Respondents", size = 7) +
+  scale_fill_discrete(guide = FALSE) +
+  scale_y_continuous(name = NULL) +
+  scale_x_discrete(breaks = c("1", "2"),
+                   labels = NULL,
+                   name = NULL) +
+  theme(
+    axis.text = element_text(color = "black", size = 7),
+    axis.title.x = element_text(color = "black", size = 7),
+    axis.ticks.x = element_blank()
+  )
+  
+new_labels <- c("1" = "R", "2" = "D", "3" = "U")
+
+P2 = 
+  P1 + facet_wrap(~ PartyPref, 
+                  labeller = labeller(PartyPref = new_labels),
+                  scales = 'free_y') +
+  scale_x_discrete(breaks = c("1", "2"),
+                   labels = NULL,
+                   name = NULL) +
+  theme(axis.title.x = element_text(color = "black", size = 7)) +
+  scale_fill_discrete(guide = FALSE) +
+  labs(title = "By Party Preference", size = 7)
+  
+P_Allies =
+P1 + P2 +
+  scale_fill_discrete(
+    name = "The U.S...",
+    breaks = c("1", "2"),
+    labels = c("should take into account the interests of its\n allies even if it means making compromises (1)",
+               "should follow its own national interests\neven when its allies strongly disagree (2)")
+  ) +
+  theme(
+    legend.position = "bottom",
+    legend.justification = c("right"),
+    legend.title = element_text(color = "black", size = "6"),
+    legend.text = element_text(color = "black", size = "5"),
+    axis.ticks.x = element_blank()
+  )
+```
+
+
+## Partisan differences on how U.S. should approach alliances 
+
+```{r, fig.dim = c(4,3)}
+
+P_Allies
+
+
+```
+
+
+
+
+
+
+
+
